@@ -6,35 +6,103 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.plantask.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+
+import data.DBHelper;
+import data.TaskModel;
 
 public class HomeFragment extends Fragment {
 
     TextView tvDisplayName, tvDisplayDate;
+    FloatingActionButton btnAddTask;
+    RecyclerView rvTaskList;
+    ArrayList<TaskModel> taskArrayList;
+    ImageView ivNoTasks;
+
+
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+
+        getParentFragmentManager().setFragmentResultListener("newTask", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle resultBundle) {
+                boolean resultStatus = resultBundle.getBoolean("result");
+                Log.e("Result", "Entered the Result callback");
+                if(resultStatus){
+                    Log.e("Result", "Entered the Result callback true condition");
+
+                    String title = resultBundle.getString("title");
+                    String description = resultBundle.getString("description");
+                    long reminderTimeInMills = resultBundle.getLong("reminderTimeInMills");
+
+                    DBHelper dbHelper = new DBHelper(requireContext());
+                    TaskModel task = new TaskModel();
+                    task.setTitle(title);
+                    task.setDescription(description);
+                    task.setReminder_time(reminderTimeInMills);
+                    task.setPriority(0); // 0 = normal task, 1 = high priority task
+                    task.setStatus("to_do");
+                    long id = dbHelper.insertTask(task);
+                    task.setId(id);
+                    Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
+
+                    taskArrayList.add(task);
+                    ivNoTasks.setVisibility(View.INVISIBLE);
+                    assert rvTaskList.getAdapter() != null;
+                    rvTaskList.getAdapter().notifyItemChanged(taskArrayList.size());
+                    Log.e("Result", "New Task Successfully added");
+                }
+                else {
+                    Log.e("Result", "Pressed cancel button from addNewTask");
+                }
+            }
+        });
 
         tvDisplayName = view.findViewById(R.id.tvWelcomeText);
         tvDisplayDate = view.findViewById(R.id.tvDate);
+        rvTaskList = view.findViewById(R.id.rvTaskList);
+        btnAddTask = view.findViewById(R.id.btnAddTask);
+        ivNoTasks = view.findViewById(R.id.ivEmptyList);
+
+        btnAddTask.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Navigation.findNavController(v).navigate(R.id.action_addNewTask);
+            }
+        });
 
         setAndGetName();
         setDate();
+
+        rvTaskList.setLayoutManager(new LinearLayoutManager(requireContext()));
+        setRecyclerView();
+
         return view;
     }
     private void setDate(){
@@ -87,5 +155,16 @@ public class HomeFragment extends Fragment {
                 .show();
 
     }
+    void setRecyclerView() {
+        DBHelper db = new DBHelper(requireContext());
+        taskArrayList = db.fetchAllTasks();
 
+        RecyclerViewAdapter rvAdapter = new RecyclerViewAdapter(requireContext(), taskArrayList);
+        rvTaskList.setAdapter(rvAdapter);
+
+        if(taskArrayList.isEmpty()){
+            ivNoTasks.setVisibility(View.VISIBLE);
+        }
+
+    }
 }

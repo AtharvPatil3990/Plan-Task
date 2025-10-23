@@ -9,6 +9,9 @@
     <color name="blue_secondary">#003C8F</color>
     <color name="orange_primary">#FF9500</color>
     <color name="orange_secondary">#FF5E3A</color>
-    <color name="card_colorTemp">#1565C0</color>
-
+    <color name="charcoal">#36454F</color>
+    <color name="grey">#808080</color>
+    <color name="yellow_secondary">#FFFF8A</color>
+    <color name="green_secondary">#90EE90</color>
+    <color name="red">#FF0000</color>
 </resources>

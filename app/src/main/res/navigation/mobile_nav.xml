@@ -10,6 +10,7 @@
         android:name="ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home" />
+
     <fragment
         android:id="@+id/navigation_history"
         android:name="ui.history.HistoryFragment"
@@ -20,5 +21,15 @@
         android:name="ui.settings.SettingsFragment"
         android:label="Settings"
         tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/add_new_task"
+        android:label="Add New Task"
+        android:name="com.android.plantask.AddTaskFragment"
+        tools:layout="@layout/fragment_add_task"/>
+
+    <action
+        android:id="@+id/action_addNewTask"
+        app:destination="@id/add_new_task"/>
 
 </navigation>
