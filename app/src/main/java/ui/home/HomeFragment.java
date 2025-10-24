@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -24,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.plantask.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
@@ -41,8 +40,10 @@ public class HomeFragment extends Fragment {
     RecyclerView rvTaskList;
     ArrayList<TaskModel> taskArrayList;
     ImageView ivNoTasks;
+    LinearProgressIndicator progressIndicator;
+    TextView tvProgressCountText;
 
-
+    int completedTaskCount = 0, totalTaskCount = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -61,6 +62,7 @@ public class HomeFragment extends Fragment {
                     String description = resultBundle.getString("description");
                     long reminderTimeInMills = resultBundle.getLong("reminderTimeInMills");
 
+//                    Add a task to the database
                     DBHelper dbHelper = new DBHelper(requireContext());
                     TaskModel task = new TaskModel();
                     task.setTitle(title);
@@ -70,16 +72,18 @@ public class HomeFragment extends Fragment {
                     task.setStatus("to_do");
                     long id = dbHelper.insertTask(task);
                     task.setId(id);
-                    Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
-
+                    dbHelper.close();
                     taskArrayList.add(task);
                     ivNoTasks.setVisibility(View.INVISIBLE);
                     assert rvTaskList.getAdapter() != null;
-                    rvTaskList.getAdapter().notifyItemChanged(taskArrayList.size());
-                    Log.e("Result", "New Task Successfully added");
+                    rvTaskList.getAdapter().notifyItemInserted(taskArrayList.size()-1);
+                    rvTaskList.scrollToPosition(taskArrayList.size()-1);
+                    Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
+                    totalTaskCount = totalTaskCount + 1;
+                    updateTaskIndicator();
                 }
                 else {
-                    Log.e("Result", "Pressed cancel button from addNewTask");
+                    Toast.makeText(requireContext(), "An error occurred please try again.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -89,6 +93,8 @@ public class HomeFragment extends Fragment {
         rvTaskList = view.findViewById(R.id.rvTaskList);
         btnAddTask = view.findViewById(R.id.btnAddTask);
         ivNoTasks = view.findViewById(R.id.ivEmptyList);
+        progressIndicator = view.findViewById(R.id.progressIndicator);
+        tvProgressCountText = view.findViewById(R.id.tvProgressCount);
 
         btnAddTask.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,6 +102,7 @@ public class HomeFragment extends Fragment {
                 Navigation.findNavController(v).navigate(R.id.action_addNewTask);
             }
         });
+
 
         setAndGetName();
         setDate();
@@ -132,13 +139,14 @@ public class HomeFragment extends Fragment {
 
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getContext());
         dialogBuilder.setTitle("Enter your name");
-        final TextInputEditText editText = new TextInputEditText(requireContext());
-        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        LayoutInflater inflater = getLayoutInflater();
+        View userNameView = inflater.inflate(R.layout.username_input_layout, null);
 
-        dialogBuilder.setView(editText)
+        dialogBuilder.setView(userNameView)
             .setPositiveButton("Done", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
+                    TextInputEditText editText = userNameView.findViewById(R.id.etUsername);
                     String name = editText.getText().toString();
                     if(!name.isEmpty()){
                         tvDisplayName.setText("Welcome, " + name);
@@ -152,19 +160,73 @@ public class HomeFragment extends Fragment {
             });
 
         dialogBuilder.setCancelable(false)
-                .show();
-
+                     .show();
     }
     void setRecyclerView() {
         DBHelper db = new DBHelper(requireContext());
         taskArrayList = db.fetchAllTasks();
-
+        db.close();
         RecyclerViewAdapter rvAdapter = new RecyclerViewAdapter(requireContext(), taskArrayList);
-        rvTaskList.setAdapter(rvAdapter);
+        rvAdapter.setOnTaskMenuItemClickListener(new OnTaskMenuItemClickListener() {
+            @Override
+            public void onUpdateTask(TaskModel taskModel, int position) {
 
-        if(taskArrayList.isEmpty()){
-            ivNoTasks.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void onDeleteTask(TaskModel taskModel, int position) {
+                DBHelper dbHelper = new DBHelper(requireContext());
+                dbHelper.deleteTask(taskModel.getId());
+                assert rvTaskList.getAdapter() != null;
+                rvTaskList.getAdapter().notifyItemRemoved(position);
+
+                taskArrayList.remove(position);
+                totalTaskCount--;
+                if (totalTaskCount == 0)
+                    setEmptyListState(true);
+                if(taskModel.isStatusCompleted())
+                    completedTaskCount--;
+                updateTaskIndicator();
+                dbHelper.close();
+            }
+        });
+
+        rvAdapter.setOnTaskStatusChangedListener((taskModel, position) -> {
+            DBHelper dbHelper = new DBHelper(requireContext());
+            dbHelper.updateTaskState(taskModel.getId(), taskModel.isStatusCompleted());
+            dbHelper.close();
+            updateTaskIndicator();
+        });
+
+        rvTaskList.setAdapter(rvAdapter);
+        totalTaskCount = taskArrayList.size();
+
+        for (int i = 0; i < totalTaskCount; i++) {
+            if(taskArrayList.get(i).isStatusCompleted())
+                completedTaskCount++;
         }
 
+        if(taskArrayList.isEmpty()){
+            setEmptyListState(true);
+        }
+    }
+
+    void setEmptyListState(boolean isListEmpty){
+        if(isListEmpty) {
+            ivNoTasks.setVisibility(View.VISIBLE);
+        }
+        else {
+            ivNoTasks.setVisibility(View.GONE);
+            setRecyclerView();
+        }
+    }
+
+    public void updateTaskIndicator(){
+        if(totalTaskCount == 0){
+            progressIndicator.setProgress(0);
+            tvProgressCountText.setText("0%");
+        }
+        int progress = (completedTaskCount / totalTaskCount) * 100;
+        tvProgressCountText.setText(progress + "%");
+        progressIndicator.setProgress(progress);
     }
 }

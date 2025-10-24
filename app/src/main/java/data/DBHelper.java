@@ -65,8 +65,18 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void deleteTask(long task_id){
         SQLiteDatabase db = getWritableDatabase();
-        db.delete(TABLE_NAME, COL_TASK_ID + " = " + task_id, null);
+        db.delete(TABLE_NAME, COL_TASK_ID + " = ?", new String[]{String.valueOf(task_id)});
     }
+
+    public void updateTaskState(long id, boolean isCompleted){
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        if(isCompleted)
+            cv.put(COL_STATUS, "completed");
+        else
+            cv.put(COL_STATUS, "to_do");
+        db.update(TABLE_NAME, cv, COL_TASK_ID + " = ? ", new String[]{String.valueOf(id)});
+        }
 
     public ArrayList<TaskModel> fetchAllTasks(){
         SQLiteDatabase db = getReadableDatabase();

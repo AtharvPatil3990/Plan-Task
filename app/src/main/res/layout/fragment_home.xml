@@ -73,19 +73,16 @@
         app:trackColor="@color/light_grey"
         app:indicatorTrackGapSize="0dp"
         app:indicatorColor="@color/black"
-        android:progress="50"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/tvProgressCount"
         app:layout_constraintTop_toBottomOf="@id/tvProgressText"
         android:layout_marginTop="15dp"
-
         />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tvProgressCount"
-        android:text="50%"
         android:textSize="18dp"
         app:layout_constraintStart_toEndOf="@id/progressIndicator"
         app:layout_constraintEnd_toEndOf="parent"
@@ -95,13 +92,14 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="300dp"
         android:id="@+id/ivEmptyList"
+        android:layout_marginTop="20dp"
         android:src="@drawable/empty_list_img"
-        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/progressIndicator"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:visibility="gone"
         />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -109,6 +107,7 @@
         android:layout_height="0dp"
         android:id="@+id/rvTaskList"
         android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
         app:layout_constraintTop_toBottomOf="@id/progressIndicator"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

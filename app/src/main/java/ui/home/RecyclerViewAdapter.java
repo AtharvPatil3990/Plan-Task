@@ -3,8 +3,11 @@ package ui.home;
 import android.content.Context;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -22,11 +25,12 @@ import data.TaskModel;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.TaskViewHolder> {
     ArrayList<TaskModel> taskArrayList;
     Context context;
+    OnTaskMenuItemClickListener menuItemClickListener;
+    OnTaskStatusChangedListener taskStatusChangedListener;
     public RecyclerViewAdapter(Context context, ArrayList<TaskModel> taskArrayList){
         this.context = context;
         this.taskArrayList = taskArrayList;
     }
-
 
     @NonNull
     @Override
@@ -41,6 +45,31 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.updateChipCheckedStatus(taskArrayList.get(position).isStatusCompleted());
 
         holder.tvDueDate.setText(setDueDate(taskArrayList.get(position).getReminder_time()));
+
+        holder.llRVLayout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                showPopupMenu(v, holder.getLayoutPosition());
+                return true;
+            }
+        });
+
+        holder.chipTaskStatus.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                boolean isChangedStatusCompleted = !holder.chipTaskStatus.getText().equals("Completed");
+                if(taskStatusChangedListener != null) {
+                    int position = holder.getLayoutPosition();
+
+                    TaskModel taskModel = taskArrayList.get(position);
+                    taskModel.setIsStatusCompleted(isChangedStatusCompleted);
+                    taskStatusChangedListener.onTaskStatusChanged(taskModel, position);
+
+                    holder.updateChipCheckedStatus(isChangedStatusCompleted);
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -64,25 +93,38 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return dueDateText;
     }
 
-    public class TaskViewHolder extends RecyclerView.ViewHolder{
+    private void showPopupMenu(View v, int position){
+        PopupMenu popupMenu = new PopupMenu(v.getContext(), v);
+        popupMenu.inflate(R.menu.task_delete_update_menu);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                int id = item.getItemId();
+                if(menuItemClickListener!=null) {
+                    if (id == R.id.update_menu)
+                        menuItemClickListener.onUpdateTask(taskArrayList.get(position), position);
+                    else
+                        menuItemClickListener.onDeleteTask(taskArrayList.get(position), position);
+                }
+                return true;
+            }
+        });
+        popupMenu.show();
+    }
+
+    public static class TaskViewHolder extends RecyclerView.ViewHolder{
         TextView tvTaskTitle, tvDueDate;
         Chip chipTaskStatus;
+        LinearLayout llRVLayout;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
+            llRVLayout = itemView.findViewById(R.id.llRVLayout);
             tvTaskTitle = itemView.findViewById(R.id.tvTaskTitle);
             tvDueDate = itemView.findViewById(R.id.tvDueDate);
             chipTaskStatus = itemView.findViewById(R.id.chipTaskStatus);
 
-            chipTaskStatus.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    updateChipCheckedStatus(!chipTaskStatus.getText().equals("Completed"));
-                    return true;
-                }
-            });
         }
-
         private void updateChipCheckedStatus(boolean toBeChecked){
             if(toBeChecked) {
 //                Task status saved as checked
@@ -100,4 +142,19 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             }
         }
     }
+    public void setOnTaskMenuItemClickListener(OnTaskMenuItemClickListener listener){
+        this.menuItemClickListener = listener;
+    }
+    public void setOnTaskStatusChangedListener(OnTaskStatusChangedListener listener){
+        this.taskStatusChangedListener = listener;
+    }
+}
+
+interface OnTaskMenuItemClickListener{
+    void onUpdateTask(TaskModel taskModel, int position);
+    void onDeleteTask(TaskModel taskModel, int position);
+}
+
+interface OnTaskStatusChangedListener{
+    void onTaskStatusChanged(TaskModel taskModel, int position);
 }
