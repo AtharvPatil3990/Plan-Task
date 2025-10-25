@@ -188,12 +188,17 @@ public class AddTaskFragment extends Fragment {
                                 etReminderDate.requestFocus();
                                 return;
                             }
+                            else if(reminderHour == 0 || reminderMinute == 0){
+                                tvReminderTimeErrorMessage.setVisibility(View.VISIBLE);
+                                tvReminderTimeErrorMessage.requestFocus();
+                                return;
+                            }
                             calendar.set(reminderYear, reminderMonth, reminderDay, reminderHour, reminderMinute);
                             reminderTimeInMills = calendar.getTimeInMillis();
                             break;
 
                         case "null":
-                            reminderTimeInMills = 0;
+                            reminderTimeInMills =  2;
                             break;
                     }
                 } else {

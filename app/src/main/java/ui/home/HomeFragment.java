@@ -41,9 +41,8 @@ public class HomeFragment extends Fragment {
     ArrayList<TaskModel> taskArrayList;
     ImageView ivNoTasks;
     LinearProgressIndicator progressIndicator;
-    TextView tvProgressCountText;
-
-    int completedTaskCount = 0, totalTaskCount = 0;
+    TextView tvProgressCount, tvPendingTaskCount, tvCompletedTaskCount;
+    ProgressCount progressCount;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,32 +68,35 @@ public class HomeFragment extends Fragment {
                     task.setDescription(description);
                     task.setReminder_time(reminderTimeInMills);
                     task.setPriority(0); // 0 = normal task, 1 = high priority task
-                    task.setStatus("to_do");
+                    task.setIsStatusCompleted(false);
                     long id = dbHelper.insertTask(task);
                     task.setId(id);
-                    dbHelper.close();
                     taskArrayList.add(task);
-                    ivNoTasks.setVisibility(View.INVISIBLE);
+
                     assert rvTaskList.getAdapter() != null;
                     rvTaskList.getAdapter().notifyItemInserted(taskArrayList.size()-1);
                     rvTaskList.scrollToPosition(taskArrayList.size()-1);
                     Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
-                    totalTaskCount = totalTaskCount + 1;
+                    progressCount.addTotalTaskCount();
+                    progressCount.addPendingTaskCount();
                     updateTaskIndicator();
                 }
                 else {
                     Toast.makeText(requireContext(), "An error occurred please try again.", Toast.LENGTH_SHORT).show();
+                    updateTaskIndicator();
                 }
             }
         });
-
+        progressCount = new ProgressCount(0,0);
         tvDisplayName = view.findViewById(R.id.tvWelcomeText);
         tvDisplayDate = view.findViewById(R.id.tvDate);
         rvTaskList = view.findViewById(R.id.rvTaskList);
         btnAddTask = view.findViewById(R.id.btnAddTask);
         ivNoTasks = view.findViewById(R.id.ivEmptyList);
         progressIndicator = view.findViewById(R.id.progressIndicator);
-        tvProgressCountText = view.findViewById(R.id.tvProgressCount);
+        tvProgressCount = view.findViewById(R.id.tvProgressCount);
+        tvPendingTaskCount = view.findViewById(R.id.tvPendingTaskCount);
+        tvCompletedTaskCount = view.findViewById(R.id.tvCompletedTaskCount);
 
         btnAddTask.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,12 +105,12 @@ public class HomeFragment extends Fragment {
             }
         });
 
-
         setAndGetName();
         setDate();
 
         rvTaskList.setLayoutManager(new LinearLayoutManager(requireContext()));
         setRecyclerView();
+        updateTaskIndicator();
 
         return view;
     }
@@ -149,7 +151,8 @@ public class HomeFragment extends Fragment {
                     TextInputEditText editText = userNameView.findViewById(R.id.etUsername);
                     String name = editText.getText().toString();
                     if(!name.isEmpty()){
-                        tvDisplayName.setText("Welcome, " + name);
+                        String displayName = "Welcome, " + name;
+                        tvDisplayName.setText(displayName);
                         sharedPreferences.edit()
                                 .putString("Username", name)
                                 .apply();
@@ -163,10 +166,24 @@ public class HomeFragment extends Fragment {
                      .show();
     }
     void setRecyclerView() {
+
         DBHelper db = new DBHelper(requireContext());
-        taskArrayList = db.fetchAllTasks();
+        taskArrayList = db.fetchTodayTask();
         db.close();
         RecyclerViewAdapter rvAdapter = new RecyclerViewAdapter(requireContext(), taskArrayList);
+
+        rvTaskList.setAdapter(rvAdapter);
+        progressCount.totalTaskCount = taskArrayList.size();
+        int completedTaskCount = 0;
+        for (int i = 0; i < taskArrayList.size(); i++) {
+            if(taskArrayList.get(i).isStatusCompleted())
+                completedTaskCount++;
+        }
+        progressCount.completedTaskCount = completedTaskCount;
+        progressCount.pendingTaskCount = (progressCount.totalTaskCount - completedTaskCount);
+        if(taskArrayList.isEmpty())
+            setEmptyListState(true);
+
         rvAdapter.setOnTaskMenuItemClickListener(new OnTaskMenuItemClickListener() {
             @Override
             public void onUpdateTask(TaskModel taskModel, int position) {
@@ -176,38 +193,40 @@ public class HomeFragment extends Fragment {
             public void onDeleteTask(TaskModel taskModel, int position) {
                 DBHelper dbHelper = new DBHelper(requireContext());
                 dbHelper.deleteTask(taskModel.getId());
+                dbHelper.close();
                 assert rvTaskList.getAdapter() != null;
                 rvTaskList.getAdapter().notifyItemRemoved(position);
 
                 taskArrayList.remove(position);
-                totalTaskCount--;
-                if (totalTaskCount == 0)
+                progressCount.totalTaskCount--;
+                if (progressCount.totalTaskCount == 0)
                     setEmptyListState(true);
                 if(taskModel.isStatusCompleted())
-                    completedTaskCount--;
+                    progressCount.completedTaskCount--;
+                else
+                    progressCount.pendingTaskCount--;
+
                 updateTaskIndicator();
-                dbHelper.close();
             }
         });
 
+//        Change the status of task from todo -> completed
         rvAdapter.setOnTaskStatusChangedListener((taskModel, position) -> {
             DBHelper dbHelper = new DBHelper(requireContext());
             dbHelper.updateTaskState(taskModel.getId(), taskModel.isStatusCompleted());
             dbHelper.close();
+            if(taskModel.isStatusCompleted()) {
+                progressCount.pendingTaskCount--;
+                progressCount.completedTaskCount++;
+            }
+            else {
+                progressCount.pendingTaskCount++;
+                progressCount.completedTaskCount--;
+            }
+            assert rvTaskList.getAdapter() != null;
+            rvTaskList.getAdapter().notifyItemChanged(position);
             updateTaskIndicator();
         });
-
-        rvTaskList.setAdapter(rvAdapter);
-        totalTaskCount = taskArrayList.size();
-
-        for (int i = 0; i < totalTaskCount; i++) {
-            if(taskArrayList.get(i).isStatusCompleted())
-                completedTaskCount++;
-        }
-
-        if(taskArrayList.isEmpty()){
-            setEmptyListState(true);
-        }
     }
 
     void setEmptyListState(boolean isListEmpty){
@@ -221,12 +240,30 @@ public class HomeFragment extends Fragment {
     }
 
     public void updateTaskIndicator(){
-        if(totalTaskCount == 0){
+        if(progressCount.totalTaskCount== 0){
             progressIndicator.setProgress(0);
-            tvProgressCountText.setText("0%");
+            tvProgressCount.setText("0%");
+            ivNoTasks.setVisibility(View.VISIBLE);
         }
-        int progress = (completedTaskCount / totalTaskCount) * 100;
-        tvProgressCountText.setText(progress + "%");
-        progressIndicator.setProgress(progress);
+        else {
+            ivNoTasks.setVisibility(View.GONE);
+
+            int progress = (int) (((float) progressCount.completedTaskCount / progressCount.totalTaskCount) * 100);
+            String progressText = progress + "%";
+            tvProgressCount.setText(progressText);
+            progressIndicator.setProgress(progress);
+        }
+        String completedCountText = "Completed: " + progressCount.completedTaskCount;
+        String pendingCountText = "Pending: " + progressCount.pendingTaskCount;
+
+        tvPendingTaskCount.setText(pendingCountText);
+        tvCompletedTaskCount.setText(completedCountText);
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        progressCount.totalTaskCount = taskArrayList.size();
+
+        updateTaskIndicator();
     }
 }

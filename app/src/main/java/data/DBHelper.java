@@ -9,10 +9,9 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import kotlinx.coroutines.scheduling.Task;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -58,14 +57,14 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COL_DESCRIPTION, task.getDescription());
         cv.put(COL_PRIORITY, task.getPriority());
         cv.put(COL_REMINDER_TIME, task.getReminder_time());
-        cv.put(COL_STATUS, task.getStatus());
-
+        cv.put(COL_STATUS, task.isStatusCompleted() ? "completed" : "to_do");
         return db.insert(TABLE_NAME,null,cv);
     }
 
     public void deleteTask(long task_id){
         SQLiteDatabase db = getWritableDatabase();
         db.delete(TABLE_NAME, COL_TASK_ID + " = ?", new String[]{String.valueOf(task_id)});
+        db.close();
     }
 
     public void updateTaskState(long id, boolean isCompleted){
@@ -75,7 +74,9 @@ public class DBHelper extends SQLiteOpenHelper {
             cv.put(COL_STATUS, "completed");
         else
             cv.put(COL_STATUS, "to_do");
+        Log.d("Task status", "Updated status " + cv.getAsString(COL_STATUS));
         db.update(TABLE_NAME, cv, COL_TASK_ID + " = ? ", new String[]{String.valueOf(id)});
+        db.close();
         }
 
     public ArrayList<TaskModel> fetchAllTasks(){
@@ -90,13 +91,48 @@ public class DBHelper extends SQLiteOpenHelper {
             task.setTitle(cursor.getString(1));
             task.setDescription(cursor.getString(2));
             task.setPriority(cursor.getInt(3));
-            task.setStatus(cursor.getString(4));
+            task.setIsStatusCompleted((cursor.getString(4)).equals("completed"));
             task.setCreation_time(cursor.getLong(5));
             task.setCompletion_time(cursor.getLong(6));
             task.setReminder_time(cursor.getLong(7));
 
             tasksArr.add(task);
         }
+        cursor.close();
+        return tasksArr;
+    }
+
+    public ArrayList<TaskModel> fetchTodayTask(){
+        SQLiteDatabase db = getReadableDatabase();
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startOfDay = calendar.getTimeInMillis();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        long endOfDay = calendar.getTimeInMillis();
+        String query = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_REMINDER_TIME + " >= ? AND " + COL_REMINDER_TIME +" < ? ORDER BY " + COL_REMINDER_TIME;
+
+        Cursor cursor = db.rawQuery(query, new String[] {String.valueOf(startOfDay), String.valueOf(endOfDay)});
+        ArrayList<TaskModel> tasksArr = new ArrayList<>();
+        while (cursor.moveToNext()){
+            TaskModel task = new TaskModel();
+            task.setId(cursor.getLong(0));
+            task.setTitle(cursor.getString(1));
+            task.setDescription(cursor.getString(2));
+            task.setPriority(cursor.getInt(3));
+            task.setIsStatusCompleted((cursor.getString(4)).equals("completed"));
+            task.setCreation_time(cursor.getLong(5));
+            task.setCompletion_time(cursor.getLong(6));
+            task.setReminder_time(cursor.getLong(7));
+
+            tasksArr.add(task);
+            Log.d("Task status ", task.getTitle() + " " +task.isStatusCompleted());
+        }
+
+        cursor.close();
+        db.close();
         return tasksArr;
     }
 }

@@ -42,7 +42,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         holder.tvTaskTitle.setText(taskArrayList.get(position).getTitle());
-        holder.updateChipCheckedStatus(taskArrayList.get(position).isStatusCompleted());
+        holder.updateChipCheckedStatusUI(taskArrayList.get(position).isStatusCompleted());
 
         holder.tvDueDate.setText(setDueDate(taskArrayList.get(position).getReminder_time()));
 
@@ -57,15 +57,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.chipTaskStatus.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                boolean isChangedStatusCompleted = !holder.chipTaskStatus.getText().equals("Completed");
+                int taskPosition = holder.getLayoutPosition();
+                TaskModel taskModel = taskArrayList.get(taskPosition);
+                taskModel.setIsStatusCompleted(!taskModel.isStatusCompleted());
                 if(taskStatusChangedListener != null) {
-                    int position = holder.getLayoutPosition();
-
-                    TaskModel taskModel = taskArrayList.get(position);
-                    taskModel.setIsStatusCompleted(isChangedStatusCompleted);
-                    taskStatusChangedListener.onTaskStatusChanged(taskModel, position);
-
-                    holder.updateChipCheckedStatus(isChangedStatusCompleted);
+                    taskStatusChangedListener.onTaskStatusChanged(taskModel, taskPosition);
+                    holder.updateChipCheckedStatusUI(taskModel.isStatusCompleted());
                 }
                 return true;
             }
@@ -95,7 +92,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     private void showPopupMenu(View v, int position){
         PopupMenu popupMenu = new PopupMenu(v.getContext(), v);
-        popupMenu.inflate(R.menu.task_delete_update_menu);
+        popupMenu.getMenuInflater().inflate(R.menu.task_delete_update_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -125,7 +122,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             chipTaskStatus = itemView.findViewById(R.id.chipTaskStatus);
 
         }
-        private void updateChipCheckedStatus(boolean toBeChecked){
+        private void updateChipCheckedStatusUI(boolean toBeChecked){
             if(toBeChecked) {
 //                Task status saved as checked
                 chipTaskStatus.setChecked(true);
