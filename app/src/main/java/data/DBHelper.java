@@ -5,14 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -68,14 +65,17 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void updateTaskState(long id, boolean isCompleted){
+    public void updateTaskState(long id, boolean setComplete){
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
-        if(isCompleted)
+        if(setComplete) {
             cv.put(COL_STATUS, "completed");
-        else
+            cv.put(COL_COMPLETION_TIME, Calendar.getInstance().getTimeInMillis());
+        }
+        else {
             cv.put(COL_STATUS, "to_do");
-        Log.d("Task status", "Updated status " + cv.getAsString(COL_STATUS));
+            cv.put(COL_COMPLETION_TIME, 0);
+        }
         db.update(TABLE_NAME, cv, COL_TASK_ID + " = ? ", new String[]{String.valueOf(id)});
         db.close();
         }

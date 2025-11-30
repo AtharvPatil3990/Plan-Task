@@ -32,7 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Scanner;
 
 import data.DBHelper;
 import data.TaskModel;
@@ -185,7 +184,7 @@ public class HomeFragment extends Fragment {
         DBHelper db = new DBHelper(requireContext());
         taskArrayList = db.fetchTodayTask();
         db.close();
-        RecyclerViewAdapter rvAdapter = new RecyclerViewAdapter(requireContext(), taskArrayList);
+        RecyclerViewAdapter rvAdapter = new RecyclerViewAdapter(requireContext(), taskArrayList, getParentFragmentManager());
 
         rvTaskList.setAdapter(rvAdapter);
         progressCount.totalTaskCount = taskArrayList.size();
@@ -194,34 +193,20 @@ public class HomeFragment extends Fragment {
             if(taskArrayList.get(i).isStatusCompleted())
                 completedTaskCount++;
         }
+
         progressCount.completedTaskCount = completedTaskCount;
         progressCount.pendingTaskCount = (progressCount.totalTaskCount - completedTaskCount);
         if(taskArrayList.isEmpty())
-            setEmptyListState(true);
+            setListStateEmpty(true);
 
         rvAdapter.setOnTaskMenuItemClickListener(new OnTaskMenuItemClickListener() {
             @Override
             public void onUpdateTask(TaskModel taskModel, int position) {
-
+//                todo: setup update layout
             }
             @Override
             public void onDeleteTask(TaskModel taskModel, int position) {
-                DBHelper dbHelper = new DBHelper(requireContext());
-                dbHelper.deleteTask(taskModel.getId());
-                dbHelper.close();
-                assert rvTaskList.getAdapter() != null;
-                rvTaskList.getAdapter().notifyItemRemoved(position);
-
-                taskArrayList.remove(position);
-                progressCount.totalTaskCount--;
-                if (progressCount.totalTaskCount == 0)
-                    setEmptyListState(true);
-                if(taskModel.isStatusCompleted())
-                    progressCount.completedTaskCount--;
-                else
-                    progressCount.pendingTaskCount--;
-
-                updateTaskIndicator();
+                deleteTask(taskModel, position);
             }
         });
 
@@ -241,9 +226,24 @@ public class HomeFragment extends Fragment {
             rvTaskList.getAdapter().notifyItemChanged(position);
             updateTaskIndicator();
         });
+
+        rvAdapter.setBottomSheetTaskActionListener(new BottomSheetTaskActionListener() {
+            @Override
+            public void onEditTask(TaskModel taskModel, int position) {
+//                todo: set update task method here
+                Toast.makeText(requireContext(), "Task Edit pressed", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDeleteTask(TaskModel taskModel, int positon) {
+                deleteTask(taskModel, positon);
+                Toast.makeText(requireContext(), "Task Deleted", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
-    void setEmptyListState(boolean isListEmpty){
+    void setListStateEmpty(boolean isListEmpty){
         if(isListEmpty) {
             ivNoTasks.setVisibility(View.VISIBLE);
             tvNoTaskStatement.setVisibility(View.VISIBLE);
@@ -262,7 +262,7 @@ public class HomeFragment extends Fragment {
             ivNoTasks.setVisibility(View.VISIBLE);
         }
         else {
-            ivNoTasks.setVisibility(View.GONE);
+            setListStateEmpty(false);
 
             int progress = (int) (((float) progressCount.completedTaskCount / progressCount.totalTaskCount) * 100);
             String progressText = progress + "%";
@@ -272,6 +272,25 @@ public class HomeFragment extends Fragment {
 
         tvPendingTaskCount.setText(String.valueOf(progressCount.pendingTaskCount));
         tvCompletedTaskCount.setText(String.valueOf(progressCount.completedTaskCount));
+    }
+
+    private void deleteTask(TaskModel taskModel, int position){
+        DBHelper dbHelper = new DBHelper(requireContext());
+        dbHelper.deleteTask(taskModel.getId());
+        dbHelper.close();
+        assert rvTaskList.getAdapter() != null;
+        rvTaskList.getAdapter().notifyItemRemoved(position);
+
+        taskArrayList.remove(position);
+        progressCount.totalTaskCount--;
+        if (progressCount.totalTaskCount == 0)
+            setListStateEmpty(true);
+        if(taskModel.isStatusCompleted())
+            progressCount.completedTaskCount--;
+        else
+            progressCount.pendingTaskCount--;
+
+        updateTaskIndicator();
     }
 
     @Override

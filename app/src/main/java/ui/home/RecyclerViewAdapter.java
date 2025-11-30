@@ -10,6 +10,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.plantask.R;
@@ -26,11 +27,14 @@ import data.TaskModel;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.TaskViewHolder> {
     ArrayList<TaskModel> taskArrayList;
     Context context;
+    FragmentManager fragmentManager;
     OnTaskMenuItemClickListener menuItemClickListener;
     OnTaskStatusChangedListener taskStatusChangedListener;
-    public RecyclerViewAdapter(Context context, ArrayList<TaskModel> taskArrayList){
+    BottomSheetTaskActionListener bottomSheetTaskActionListener;
+    public RecyclerViewAdapter(Context context, ArrayList<TaskModel> taskArrayList, FragmentManager fragmentManager){
         this.context = context;
         this.taskArrayList = taskArrayList;
+        this.fragmentManager = fragmentManager;
     }
 
     @NonNull
@@ -64,6 +68,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 }
                 return true;
             }
+        });
+
+        holder.cvTask.setOnClickListener(v -> {
+            int positionInside = holder.getLayoutPosition(); // position = index
+            TaskModel taskModel = taskArrayList.get(positionInside);
+            TaskBottomSheet taskBottomSheet = new TaskBottomSheet(taskModel, positionInside, bottomSheetTaskActionListener);
+            taskBottomSheet.show(fragmentManager, "Task Bottom Sheet");
         });
     }
 
@@ -111,6 +122,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         });
         popupMenu.show();
     }
+    public void setOnTaskMenuItemClickListener(OnTaskMenuItemClickListener listener){
+        this.menuItemClickListener = listener;
+    }
+    public void setOnTaskStatusChangedListener(OnTaskStatusChangedListener listener){
+        this.taskStatusChangedListener = listener;
+    }
+    public void setBottomSheetTaskActionListener(BottomSheetTaskActionListener listener){
+        this.bottomSheetTaskActionListener = listener;
+    }
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder{
         TextView tvTaskTitle, tvDueDate;
@@ -140,12 +160,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 chipTaskStatus.setChipIconResource(R.drawable.task_todo_icon);
             }
         }
-    }
-    public void setOnTaskMenuItemClickListener(OnTaskMenuItemClickListener listener){
-        this.menuItemClickListener = listener;
-    }
-    public void setOnTaskStatusChangedListener(OnTaskStatusChangedListener listener){
-        this.taskStatusChangedListener = listener;
     }
 }
 
