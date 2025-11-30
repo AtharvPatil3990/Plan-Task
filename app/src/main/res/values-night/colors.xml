@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="screenBackground">#0D0D0D</color>
+    <color name="containerBackground">#1A1A1A</color>
+    <color name="cardBackground">#1F1F1F</color>
+
+    <color name="primaryText">#FFFFFF</color>
+    <color name="secondaryText">#A0A0A0</color>
+    <color name="accentBlue">#3B82F6</color>
+
+    <color name="progressTrack">#2E2E2E</color>
+    <color name="progressIndicatorColor">#3B82F6</color>
+
+    <color name="fabBackground">#06B6D4</color>
+    <color name="fabIconTint">#FFFFFF</color>
+
+    <color name="rvContainer">#141414</color>
+    <color name="rvContainerBorder">#222222</color>
+
+    <color name="icons">#FFFFFFFF</color>
+    <color name="recycler_item_background">#1A1A1A</color>
+
+    <color name="completed">#90EE90</color>
+    <color name="todo">#FFFF8A</color>
+</resources>

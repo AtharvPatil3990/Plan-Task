@@ -8,17 +8,4 @@ public class ProgressCount {
         this.completedTaskCount = completedCount;
         pendingTaskCount = totalCount - completedCount;
     }
-
-    public void addTotalTaskCount(){
-        totalTaskCount++;
-    }
-
-    public void addCompletedTaskCount(){
-        completedTaskCount++;
-    }
-
-    public void addPendingTaskCount(){
-        pendingTaskCount++;
-    }
-
 }

@@ -1,5 +1,7 @@
 package ui.home;
 
+import static com.google.android.material.snackbar.BaseTransientBottomBar.ANIMATION_MODE_FADE;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,12 +25,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.plantask.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Scanner;
 
 import data.DBHelper;
 import data.TaskModel;
@@ -41,7 +45,7 @@ public class HomeFragment extends Fragment {
     ArrayList<TaskModel> taskArrayList;
     ImageView ivNoTasks;
     LinearProgressIndicator progressIndicator;
-    TextView tvProgressCount, tvPendingTaskCount, tvCompletedTaskCount;
+    TextView tvProgressCount, tvPendingTaskCount, tvCompletedTaskCount, tvNoTaskStatement;
     ProgressCount progressCount;
 
     @Override
@@ -60,8 +64,17 @@ public class HomeFragment extends Fragment {
                     String title = resultBundle.getString("title");
                     String description = resultBundle.getString("description");
                     long reminderTimeInMills = resultBundle.getLong("reminderTimeInMills");
+                    boolean isReminderToday = resultBundle.getBoolean("isReminderToday");
 
-//                    Add a task to the database
+                    if(isReminderToday)
+                        Toast.makeText(requireContext(), "Task added to list", Toast.LENGTH_SHORT).show();
+
+                    else Snackbar.make(requireContext() ,view, "View added task in calender", Snackbar.LENGTH_SHORT)
+                            .setAnimationMode(ANIMATION_MODE_FADE)
+                            .setAnchorView(requireActivity().findViewById(R.id.bottom_navigation))
+                            .show();
+
+//              Add a task to the database
                     DBHelper dbHelper = new DBHelper(requireContext());
                     TaskModel task = new TaskModel();
                     task.setTitle(title);
@@ -70,23 +83,25 @@ public class HomeFragment extends Fragment {
                     task.setPriority(0); // 0 = normal task, 1 = high priority task
                     task.setIsStatusCompleted(false);
                     long id = dbHelper.insertTask(task);
+                    dbHelper.close();
                     task.setId(id);
-                    taskArrayList.add(task);
 
-                    assert rvTaskList.getAdapter() != null;
-                    rvTaskList.getAdapter().notifyItemInserted(taskArrayList.size()-1);
-                    rvTaskList.scrollToPosition(taskArrayList.size()-1);
-                    Toast.makeText(requireContext(), "Task added successfully", Toast.LENGTH_SHORT).show();
-                    progressCount.addTotalTaskCount();
-                    progressCount.addPendingTaskCount();
-                    updateTaskIndicator();
+                    if(isReminderToday) {
+                        taskArrayList.add(task);
+                        assert rvTaskList.getAdapter() != null;
+                        rvTaskList.getAdapter().notifyItemInserted(taskArrayList.size() - 1);
+                        rvTaskList.scrollToPosition(taskArrayList.size() - 1);
+                        progressCount.totalTaskCount++;
+                        progressCount.pendingTaskCount++;
+                        updateTaskIndicator();
+                    }
                 }
                 else {
-                    Toast.makeText(requireContext(), "An error occurred please try again.", Toast.LENGTH_SHORT).show();
                     updateTaskIndicator();
                 }
             }
         });
+
         progressCount = new ProgressCount(0,0);
         tvDisplayName = view.findViewById(R.id.tvWelcomeText);
         tvDisplayDate = view.findViewById(R.id.tvDate);
@@ -97,6 +112,7 @@ public class HomeFragment extends Fragment {
         tvProgressCount = view.findViewById(R.id.tvProgressCount);
         tvPendingTaskCount = view.findViewById(R.id.tvPendingTaskCount);
         tvCompletedTaskCount = view.findViewById(R.id.tvCompletedTaskCount);
+        tvNoTaskStatement = view.findViewById(R.id.tvNoTaskStatement);
 
         btnAddTask.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,7 +182,6 @@ public class HomeFragment extends Fragment {
                      .show();
     }
     void setRecyclerView() {
-
         DBHelper db = new DBHelper(requireContext());
         taskArrayList = db.fetchTodayTask();
         db.close();
@@ -210,7 +225,6 @@ public class HomeFragment extends Fragment {
             }
         });
 
-//        Change the status of task from todo -> completed
         rvAdapter.setOnTaskStatusChangedListener((taskModel, position) -> {
             DBHelper dbHelper = new DBHelper(requireContext());
             dbHelper.updateTaskState(taskModel.getId(), taskModel.isStatusCompleted());
@@ -232,9 +246,11 @@ public class HomeFragment extends Fragment {
     void setEmptyListState(boolean isListEmpty){
         if(isListEmpty) {
             ivNoTasks.setVisibility(View.VISIBLE);
+            tvNoTaskStatement.setVisibility(View.VISIBLE);
         }
         else {
             ivNoTasks.setVisibility(View.GONE);
+            tvNoTaskStatement.setVisibility(View.GONE);
             setRecyclerView();
         }
     }
@@ -253,12 +269,11 @@ public class HomeFragment extends Fragment {
             tvProgressCount.setText(progressText);
             progressIndicator.setProgress(progress);
         }
-        String completedCountText = "Completed: " + progressCount.completedTaskCount;
-        String pendingCountText = "Pending: " + progressCount.pendingTaskCount;
 
-        tvPendingTaskCount.setText(pendingCountText);
-        tvCompletedTaskCount.setText(completedCountText);
+        tvPendingTaskCount.setText(String.valueOf(progressCount.pendingTaskCount));
+        tvCompletedTaskCount.setText(String.valueOf(progressCount.completedTaskCount));
     }
+
     @Override
     public void onResume() {
         super.onResume();

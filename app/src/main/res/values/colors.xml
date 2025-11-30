@@ -2,16 +2,33 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="primary_background">#F4F6F8</color>
     <color name="light_grey">#D3D3D3</color>
     <color name="light_grey_3">#E8E9EB</color>
-    <color name="blue_primary">#4A90E2</color>
-    <color name="blue_secondary">#003C8F</color>
-    <color name="orange_primary">#FF9500</color>
-    <color name="orange_secondary">#FF5E3A</color>
-    <color name="charcoal">#36454F</color>
-    <color name="grey">#808080</color>
-    <color name="yellow_secondary">#FFFF8A</color>
-    <color name="green_secondary">#90EE90</color>
+
     <color name="red">#FF0000</color>
+
+    <color name="completed">#90EE90</color>
+    <color name="todo">#FFFF8A</color>
+
+    <color name="screenBackground">#F2F2F2</color>
+    <color name="containerBackground">#FFFFFF</color>
+    <color name="cardBackground">#FFFFFF</color>
+
+    <color name="primaryText">#1A1A1A</color>
+    <color name="secondaryText">#6E6E6E</color>
+    <color name="accentBlue">#3B82F6</color>
+
+    <color name="progressTrack">#E0E0E0</color>
+    <color name="progressIndicatorColor">#3B82F6</color>
+
+    <color name="fabBackground">#D07FE0F4</color>
+    <color name="fabIconTint">#FFFFFF</color>
+
+    <color name="rvContainer">#FFFFFF</color>
+    <color name="rvContainerBorder">#DADADA</color>
+
+    <color name="icons">#1A1A1A</color>
+    <color name="recycler_item_background">#F2F2F2FF</color>
+
+    <color name="navRipple">#2206B6D4</color>
 </resources>

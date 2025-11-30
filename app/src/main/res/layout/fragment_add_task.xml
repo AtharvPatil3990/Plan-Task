@@ -4,14 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="10dp"
-    tools:context=".AddTaskFragment">
+    android:padding="15dp"
+    android:backgroundTint="@color/screenBackground"
+    tools:context="ui.home.AddTaskFragment">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tvAddTaskTitle"
         android:text="Add a new task"
+        android:textColor="@color/primaryText"
         android:textSize="30sp"
         android:textStyle="bold"
         android:layout_marginTop="20dp"
@@ -24,9 +26,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/etTitle"
+        android:textColor="@color/primaryText"
         android:hint="Enter task title:"
+        android:textColorHint="@color/secondaryText"
         android:drawableStart="@drawable/title_icon"
         android:inputType="text"
+        android:backgroundTint="@color/icons"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvAddTaskTitle"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,11 +45,14 @@
         android:layout_height="wrap_content"
         android:hint="Enter task description: (optional)"
         android:id="@+id/etDescription"
+        android:textColor="@color/primaryText"
+        android:textColorHint="@color/secondaryText"
         android:drawableStart="@drawable/description_icon"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/etTitle"
         app:layout_constraintEnd_toEndOf="parent"
         android:inputType="text"
+        android:backgroundTint="@color/icons"
         android:layout_marginStart="15dp"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="15dp"
@@ -70,10 +78,12 @@
         android:id="@+id/tvRadioGroupTitle"
         android:text="Select date for reminder:"
         android:textSize="20sp"
+        android:textColor="@color/primaryText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvDateErrorMessage"
         android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
         android:layout_marginEnd="15dp" />
 
     <RadioGroup
@@ -90,6 +100,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/rbToday"
+            android:textColor="@color/primaryText"
             android:text="Today"
             android:textSize="18dp"/>
 
@@ -97,6 +108,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/rbCustom"
+            android:textColor="@color/primaryText"
             android:text="Select Custom Date"
             android:textSize="18dp"
             />
@@ -105,6 +117,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/rbNoReminder"
+            android:textColor="@color/primaryText"
             android:text="Don't set a reminder"
             android:textSize="18dp" />
     </RadioGroup>
@@ -114,17 +127,19 @@
         android:layout_height="wrap_content"
         android:id="@+id/etReminderDate"
         android:hint="Tap to select date"
+        android:textColorHint="@color/secondaryText"
         android:drawableStart="@drawable/calendar_icon"
+        android:backgroundTint="@color/icons"
         android:inputType="none"
+        android:textColor="@color/primaryText"
         android:focusable="false"
         android:clickable="true"
         app:layout_constraintTop_toBottomOf="@id/rgSelectDate"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginStart="15dp"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="15dp"
-        android:visibility="gone" />
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="15dp" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:layout_width="match_parent"
@@ -136,10 +151,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:inputType="none"
+        android:textColorHint="@color/secondaryText"
+        android:textColor="@color/primaryText"
+        android:backgroundTint="@color/icons"
         android:focusable="false"
         android:clickable="true"
+        android:layout_marginTop="20dp"
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"/>
+
     <TextView
         android:id="@+id/tvReminderTimeErrorMessage"
         android:layout_width="wrap_content"
@@ -154,11 +174,14 @@
         android:visibility="gone"
         />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:id="@+id/btnCancel"
         android:text="Cancel"
+        android:textColor="@color/primaryText"
+        android:backgroundTint="@color/fabBackground"
+        app:cornerRadius="15dp"
         android:textSize="18dp"
         app:layout_constraintTop_toBottomOf="@id/etReminderTime"
         app:layout_constraintEnd_toStartOf="@id/guideline50"
@@ -167,12 +190,15 @@
         android:layout_marginEnd="10dp"
         />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:id="@+id/btnDone"
         android:text="Done"
         android:textSize="18dp"
+        app:cornerRadius="15dp"
+        android:textColor="@color/primaryText"
+        android:backgroundTint="@color/fabBackground"
         app:layout_constraintTop_toBottomOf="@id/etReminderTime"
         app:layout_constraintStart_toStartOf="@id/guideline50"
         app:layout_constraintBottom_toBottomOf="parent"

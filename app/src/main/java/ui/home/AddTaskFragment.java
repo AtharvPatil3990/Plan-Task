@@ -1,4 +1,4 @@
-package com.android.plantask;
+package ui.home;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
@@ -16,6 +16,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import com.android.plantask.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.timepicker.MaterialTimePicker;
 
@@ -32,7 +33,7 @@ public class AddTaskFragment extends Fragment {
     RadioGroup rgDate;
     String selectedReminderChoice = "null";
     private boolean isReminderDateOptionSelected = false;
-    private int reminderHour = 9, reminderMinute = 0, reminderDay = 0, reminderMonth = 0, reminderYear = 0;
+    private int reminderHour = -1, reminderMinute = -1, reminderDay = -1, reminderMonth = -1, reminderYear = -1;
     private String title, description;
     private long reminderTimeInMills;
 
@@ -102,9 +103,9 @@ public class AddTaskFragment extends Fragment {
                             @Override
                             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                                 SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
-                                Calendar calendar = Calendar.getInstance();
-                                calendar.set(year, month, dayOfMonth);
-                                etReminderDate.setText(sdf.format(calendar.getTimeInMillis()));
+                                Calendar cal = Calendar.getInstance();
+                                cal.set(year, month, dayOfMonth);
+                                etReminderDate.setText(sdf.format(cal.getTimeInMillis()));
 
                                 reminderDay = dayOfMonth;
                                 reminderMonth = month;
@@ -114,6 +115,7 @@ public class AddTaskFragment extends Fragment {
                         calendar.get(Calendar.YEAR),
                         calendar.get(Calendar.MONTH),
                         calendar.get(Calendar.DAY_OF_MONTH));
+                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
                 datePickerDialog.show();
             }
         });
@@ -154,7 +156,6 @@ public class AddTaskFragment extends Fragment {
         btnDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 title = etTitle.getText().toString();
                 if (title.isEmpty()) {
                     etTitle.setError("Title cannot be empty");
@@ -162,11 +163,13 @@ public class AddTaskFragment extends Fragment {
                     return;
                 }
 
-                description = etDescription.getText().toString();
-                if (description.isEmpty())
-                    description = "null";
+                if (etDescription.getText().toString().isEmpty())
+                    description = "";
+                else
+                    description = etDescription.getText().toString();
 
                 if (isReminderDateOptionSelected) {
+                    Calendar cal = Calendar.getInstance();
 //                    Check the date selected in radio button
                     switch (selectedReminderChoice) {
                         case "today":
@@ -175,30 +178,30 @@ public class AddTaskFragment extends Fragment {
                                 tvReminderTimeErrorMessage.requestFocus();
                                 return;
                             }
-                            calendar.set(Calendar.HOUR_OF_DAY, reminderHour);
-                            calendar.set(Calendar.MINUTE, reminderMinute);
-                            calendar.set(Calendar.SECOND, 0);
-                            calendar.set(Calendar.MILLISECOND, 0);
-                            reminderTimeInMills = calendar.getTimeInMillis();
+                            cal.set(Calendar.HOUR_OF_DAY, reminderHour);
+                            cal.set(Calendar.MINUTE, reminderMinute);
+                            cal.set(Calendar.SECOND, 0);
+                            cal.set(Calendar.MILLISECOND, 0);
+                            reminderTimeInMills = cal.getTimeInMillis();
                             break;
 
                         case "custom_date":
-                            if (reminderDay == 0 || reminderMonth == 0 || reminderYear == 0) {
+                            if (reminderDay == -1 || reminderMonth == -1 || reminderYear == -1) {
                                 etReminderDate.setError("Please select a date");
                                 etReminderDate.requestFocus();
                                 return;
                             }
-                            else if(reminderHour == 0 || reminderMinute == 0){
+                            else if(reminderHour == -1 || reminderMinute == -1){
                                 tvReminderTimeErrorMessage.setVisibility(View.VISIBLE);
                                 tvReminderTimeErrorMessage.requestFocus();
                                 return;
                             }
-                            calendar.set(reminderYear, reminderMonth, reminderDay, reminderHour, reminderMinute);
-                            reminderTimeInMills = calendar.getTimeInMillis();
+                            cal.set(reminderYear, reminderMonth, reminderDay, reminderHour, reminderMinute);
+                            reminderTimeInMills = cal.getTimeInMillis();
                             break;
 
                         case "null":
-                            reminderTimeInMills =  2;
+                            reminderTimeInMills = 0;
                             break;
                     }
                 } else {
@@ -212,6 +215,7 @@ public class AddTaskFragment extends Fragment {
                 taskBundle.putString("title", title);
                 taskBundle.putString("description", description);
                 taskBundle.putLong("reminderTimeInMills", reminderTimeInMills);
+                taskBundle.putBoolean("isReminderToday", !selectedReminderChoice.equals("custom_date"));
                 getParentFragmentManager().setFragmentResult("newTask", taskBundle);
 
                 NavHostFragment.findNavController(AddTaskFragment.this).popBackStack();

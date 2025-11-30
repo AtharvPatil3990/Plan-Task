@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -79,59 +80,81 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
         }
 
-    public ArrayList<TaskModel> fetchAllTasks(){
-        SQLiteDatabase db = getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_NAME;
-        Cursor cursor = db.rawQuery(query, null);
-
-        ArrayList<TaskModel> tasksArr = new ArrayList<>();
-        while(cursor.moveToNext()){
-            TaskModel task = new TaskModel();
-            task.setId(cursor.getLong(0));
-            task.setTitle(cursor.getString(1));
-            task.setDescription(cursor.getString(2));
-            task.setPriority(cursor.getInt(3));
-            task.setIsStatusCompleted((cursor.getString(4)).equals("completed"));
-            task.setCreation_time(cursor.getLong(5));
-            task.setCompletion_time(cursor.getLong(6));
-            task.setReminder_time(cursor.getLong(7));
-
-            tasksArr.add(task);
-        }
-        cursor.close();
-        return tasksArr;
-    }
+//    public ArrayList<TaskModel> fetchAllTasks(){
+//        SQLiteDatabase db = getReadableDatabase();
+//        String query = "SELECT * FROM " + TABLE_NAME;
+//        Cursor cursor = db.rawQuery(query, null);
+//
+//        ArrayList<TaskModel> tasksArr = new ArrayList<>();
+//        while(cursor.moveToNext()){
+//            TaskModel task = new TaskModel();
+//            task.setId(cursor.getLong(0));
+//            task.setTitle(cursor.getString(1));
+//            task.setDescription(cursor.getString(2));
+//            task.setPriority(cursor.getInt(3));
+//            task.setIsStatusCompleted((cursor.getString(4)).equals("completed"));
+//            task.setCreation_time(cursor.getLong(5));
+//            task.setCompletion_time(cursor.getLong(6));
+//            task.setReminder_time(cursor.getLong(7));
+//
+//            tasksArr.add(task);
+//        }
+//        cursor.close();
+//        return tasksArr;
+//    }
 
     public ArrayList<TaskModel> fetchTodayTask(){
+        ArrayList<TaskModel> tasksArr = new ArrayList<>();
+
         SQLiteDatabase db = getReadableDatabase();
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
+
         long startOfDay = calendar.getTimeInMillis();
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         long endOfDay = calendar.getTimeInMillis();
         String query = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_REMINDER_TIME + " >= ? AND " + COL_REMINDER_TIME +" < ? ORDER BY " + COL_REMINDER_TIME;
 
-        Cursor cursor = db.rawQuery(query, new String[] {String.valueOf(startOfDay), String.valueOf(endOfDay)});
-        ArrayList<TaskModel> tasksArr = new ArrayList<>();
-        while (cursor.moveToNext()){
+        Cursor todayTaskCursor = db.rawQuery(query, new String[] {String.valueOf(startOfDay), String.valueOf(endOfDay)});
+
+        while (todayTaskCursor.moveToNext()){
             TaskModel task = new TaskModel();
-            task.setId(cursor.getLong(0));
-            task.setTitle(cursor.getString(1));
-            task.setDescription(cursor.getString(2));
-            task.setPriority(cursor.getInt(3));
-            task.setIsStatusCompleted((cursor.getString(4)).equals("completed"));
-            task.setCreation_time(cursor.getLong(5));
-            task.setCompletion_time(cursor.getLong(6));
-            task.setReminder_time(cursor.getLong(7));
+            task.setId(todayTaskCursor.getLong(0));
+            task.setTitle(todayTaskCursor.getString(1));
+            task.setDescription(todayTaskCursor.getString(2));
+            task.setPriority(todayTaskCursor.getInt(3));
+            task.setIsStatusCompleted((todayTaskCursor.getString(4)).equals("completed"));
+            task.setCreation_time(todayTaskCursor.getLong(5));
+            task.setCompletion_time(todayTaskCursor.getLong(6));
+            task.setReminder_time(todayTaskCursor.getLong(7));
 
             tasksArr.add(task);
-            Log.d("Task status ", task.getTitle() + " " +task.isStatusCompleted());
         }
 
-        cursor.close();
+        todayTaskCursor.close();
+
+//        Fetching pending(to_do) tasks with no reminder
+        String noRemTaskQuery = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_REMINDER_TIME + " = ? AND " + COL_STATUS + " = ?";
+        Cursor noReminderTaskCursor = db.rawQuery(noRemTaskQuery, new String[] {"0", "to_do"});
+
+        while(noReminderTaskCursor.moveToNext()){
+            TaskModel task = new TaskModel();
+            task.setId(noReminderTaskCursor.getLong(0));
+            task.setTitle(noReminderTaskCursor.getString(1));
+            task.setDescription(noReminderTaskCursor.getString(2));
+            task.setPriority(noReminderTaskCursor.getInt(3));
+            task.setIsStatusCompleted((noReminderTaskCursor.getString(4)).equals("completed"));
+            task.setCreation_time(noReminderTaskCursor.getLong(5));
+            task.setCompletion_time(noReminderTaskCursor.getLong(6));
+            task.setReminder_time(noReminderTaskCursor.getLong(7));
+
+            tasksArr.add(task);
+        }
+
+        noReminderTaskCursor.close();
         db.close();
         return tasksArr;
     }

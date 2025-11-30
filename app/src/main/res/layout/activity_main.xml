@@ -30,6 +30,9 @@
         android:clipToPadding="false"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu"
+        app:itemRippleColor="@color/navRipple"
+        android:backgroundTint="@color/icons"
+        android:background="@color/screenBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
