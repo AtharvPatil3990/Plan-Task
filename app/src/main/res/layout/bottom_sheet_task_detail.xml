@@ -13,6 +13,15 @@
         android:layout_height="wrap_content"
         android:paddingBottom="32dp">
 
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:id="@+id/drag_handle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
         <!-- Top Heading -->
         <TextView
             android:id="@+id/tvHeader"
@@ -23,9 +32,9 @@
             android:textStyle="bold"
             android:textColor="@color/primaryText"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/drag_handle"
             app:layout_constraintStart_toStartOf="parent"
-            android:paddingBottom="16dp"/>
+            />
 
         <!-- Card: Title -->
         <com.google.android.material.card.MaterialCardView
@@ -72,7 +81,6 @@
             android:id="@+id/cardDescription"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             app:cardCornerRadius="10dp"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true"
@@ -112,7 +120,6 @@
             android:id="@+id/cardDates"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             app:cardCornerRadius="10dp"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true"
@@ -206,7 +213,6 @@
             android:id="@+id/cardStatus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true"

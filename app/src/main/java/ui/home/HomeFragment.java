@@ -2,6 +2,7 @@ package ui.home;
 
 import static com.google.android.material.snackbar.BaseTransientBottomBar.ANIMATION_MODE_FADE;
 
+import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,7 +12,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,7 +46,7 @@ public class HomeFragment extends Fragment {
     RecyclerView rvTaskList;
     ArrayList<TaskModel> taskArrayList;
     ImageView ivNoTasks;
-    LinearProgressIndicator progressIndicator;
+    LinearProgressIndicator progressBar;
     TextView tvProgressCount, tvPendingTaskCount, tvCompletedTaskCount, tvNoTaskStatement;
     ProgressCount progressCount;
 
@@ -92,11 +95,11 @@ public class HomeFragment extends Fragment {
                         rvTaskList.scrollToPosition(taskArrayList.size() - 1);
                         progressCount.totalTaskCount++;
                         progressCount.pendingTaskCount++;
-                        updateTaskIndicator();
+                        updateTaskCount();
                     }
                 }
                 else {
-                    updateTaskIndicator();
+                    updateTaskCount();
                 }
             }
         });
@@ -107,7 +110,7 @@ public class HomeFragment extends Fragment {
         rvTaskList = view.findViewById(R.id.rvTaskList);
         btnAddTask = view.findViewById(R.id.btnAddTask);
         ivNoTasks = view.findViewById(R.id.ivEmptyList);
-        progressIndicator = view.findViewById(R.id.progressIndicator);
+        progressBar = view.findViewById(R.id.progressIndicator);
         tvProgressCount = view.findViewById(R.id.tvProgressCount);
         tvPendingTaskCount = view.findViewById(R.id.tvPendingTaskCount);
         tvCompletedTaskCount = view.findViewById(R.id.tvCompletedTaskCount);
@@ -125,7 +128,7 @@ public class HomeFragment extends Fragment {
 
         rvTaskList.setLayoutManager(new LinearLayoutManager(requireContext()));
         setRecyclerView();
-        updateTaskIndicator();
+        updateTaskCount();
 
         return view;
     }
@@ -215,6 +218,11 @@ public class HomeFragment extends Fragment {
             dbHelper.updateTaskState(taskModel.getId(), taskModel.isStatusCompleted());
             dbHelper.close();
             if(taskModel.isStatusCompleted()) {
+                if(taskModel.getReminder_time() == 0){
+                    Snackbar.make(requireContext(), requireView(), "No reminder set — task appears in calendar after completion.", Snackbar.LENGTH_SHORT)
+                            .setAnimationMode(Snackbar.ANIMATION_MODE_FADE)
+                            .show();
+                }
                 progressCount.pendingTaskCount--;
                 progressCount.completedTaskCount++;
             }
@@ -224,7 +232,7 @@ public class HomeFragment extends Fragment {
             }
             assert rvTaskList.getAdapter() != null;
             rvTaskList.getAdapter().notifyItemChanged(position);
-            updateTaskIndicator();
+            updateTaskCount();
         });
 
         rvAdapter.setBottomSheetTaskActionListener(new BottomSheetTaskActionListener() {
@@ -255,23 +263,37 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    public void updateTaskIndicator(){
+    public void updateTaskCount(){
         if(progressCount.totalTaskCount== 0){
-            progressIndicator.setProgress(0);
+            progressBar.setProgress(0);
             tvProgressCount.setText("0%");
-            ivNoTasks.setVisibility(View.VISIBLE);
+            setListStateEmpty(true);
         }
         else {
             setListStateEmpty(false);
 
             int progress = (int) (((float) progressCount.completedTaskCount / progressCount.totalTaskCount) * 100);
-            String progressText = progress + "%";
-            tvProgressCount.setText(progressText);
-            progressIndicator.setProgress(progress);
+            animateProgressBar(progressBar.getProgress(), progress);
         }
 
         tvPendingTaskCount.setText(String.valueOf(progressCount.pendingTaskCount));
         tvCompletedTaskCount.setText(String.valueOf(progressCount.completedTaskCount));
+    }
+
+    private void animateProgressBar(int from, int to){
+        ValueAnimator valueAnimator = ValueAnimator.ofInt(from, to);
+        valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+        valueAnimator.setDuration(600);
+
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(@NonNull ValueAnimator animation) {
+                int progress = (int) animation.getAnimatedValue();
+                progressBar.setProgress(progress);
+                tvProgressCount.setText(progress + "%");
+            }
+        });
+        valueAnimator.start();
     }
 
     private void deleteTask(TaskModel taskModel, int position){
@@ -290,7 +312,7 @@ public class HomeFragment extends Fragment {
         else
             progressCount.pendingTaskCount--;
 
-        updateTaskIndicator();
+        updateTaskCount();
     }
 
     @Override
@@ -298,6 +320,6 @@ public class HomeFragment extends Fragment {
         super.onResume();
         progressCount.totalTaskCount = taskArrayList.size();
 
-        updateTaskIndicator();
+        updateTaskCount();
     }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -97,11 +98,15 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
             tvStatus.setText("Pending");
 
         btnEdit.setOnClickListener(v -> {
+            v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
+
             bottomSheetTaskActionListener.onEditTask(task, position);
             dismiss();
         });
 
         btnDelete.setOnClickListener(v -> {
+            v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
+
             bottomSheetTaskActionListener.onDeleteTask(task, position);
             dismiss();
         });

@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
@@ -59,6 +60,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.chipTaskStatus.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                v.startAnimation(AnimationUtils.loadAnimation(context, R.anim.button_click_scale_animation));
                 int taskPosition = holder.getLayoutPosition();
                 TaskModel taskModel = taskArrayList.get(taskPosition);
                 taskModel.setIsStatusCompleted(!taskModel.isStatusCompleted());
@@ -71,6 +73,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         });
 
         holder.cvTask.setOnClickListener(v -> {
+            v.startAnimation(AnimationUtils.loadAnimation(v.getContext(), R.anim.button_click_scale_animation));
             int positionInside = holder.getLayoutPosition(); // position = index
             TaskModel taskModel = taskArrayList.get(positionInside);
             TaskBottomSheet taskBottomSheet = new TaskBottomSheet(taskModel, positionInside, bottomSheetTaskActionListener);
@@ -148,7 +151,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if(toBeChecked) {
 //                Task status saved as checked
                 chipTaskStatus.setChecked(true);
-                chipTaskStatus.setText("Completed");
+                chipTaskStatus.setText("Done ");
                 chipTaskStatus.setChipBackgroundColorResource(R.color.completed);
                 chipTaskStatus.setChipIconResource(R.drawable.task_completed_icon);
             }

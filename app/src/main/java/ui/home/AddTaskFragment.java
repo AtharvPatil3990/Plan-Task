@@ -10,6 +10,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.RadioButton;
@@ -75,7 +76,7 @@ public class AddTaskFragment extends Fragment {
                         case "Today":
                             selectedReminderChoice = "today";
                             etReminderTime.setVisibility(View.VISIBLE);
-                            etReminderDate.setVisibility(View.INVISIBLE);
+                            etReminderDate.setVisibility(View.GONE);
                             break;
                         case "Select Custom Date":
                             etReminderDate.setVisibility(View.VISIBLE);
@@ -84,8 +85,8 @@ public class AddTaskFragment extends Fragment {
                             break;
                         case "Don't set a reminder":
                             selectedReminderChoice = "null";
-                            etReminderTime.setVisibility(View.INVISIBLE);
-                            etReminderDate.setVisibility(View.INVISIBLE);
+                            etReminderTime.setVisibility(View.GONE);
+                            etReminderDate.setVisibility(View.GONE);
                             break;
                     }
                     isReminderDateOptionSelected = true;
@@ -146,6 +147,9 @@ public class AddTaskFragment extends Fragment {
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                Started animation for button click
+                v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
+
                 Bundle taskBundle = new Bundle();
                 taskBundle.putBoolean("result", false);
                 getParentFragmentManager().setFragmentResult("newTask", taskBundle);
@@ -156,6 +160,8 @@ public class AddTaskFragment extends Fragment {
         btnDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                Started animation for button click
+                v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
                 title = etTitle.getText().toString();
                 if (title.isEmpty()) {
                     etTitle.setError("Title cannot be empty");
@@ -209,7 +215,6 @@ public class AddTaskFragment extends Fragment {
                     tvRGErrorMessage.requestFocus();
                     return;
                 }
-
                 Bundle taskBundle = new Bundle();
                 taskBundle.putBoolean("result", true);
                 taskBundle.putString("title", title);
