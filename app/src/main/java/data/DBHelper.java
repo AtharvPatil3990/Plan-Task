@@ -46,7 +46,7 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public long insertTask(TaskModel task){
+    public int insertTask(TaskModel task){
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
 
@@ -56,7 +56,7 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COL_PRIORITY, task.getPriority());
         cv.put(COL_REMINDER_TIME, task.getReminder_time());
         cv.put(COL_STATUS, task.isStatusCompleted() ? "completed" : "to_do");
-        return db.insert(TABLE_NAME,null,cv);
+        return Math.toIntExact(db.insert(TABLE_NAME, null, cv));
     }
 
     public void deleteTask(long task_id){
@@ -78,6 +78,30 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         db.update(TABLE_NAME, cv, COL_TASK_ID + " = ? ", new String[]{String.valueOf(id)});
         db.close();
+        }
+
+        public TaskModel getTaskFromID(int task_id){
+            SQLiteDatabase db = getReadableDatabase();
+            String query = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_TASK_ID + " = ?";
+            Cursor cursor = db.rawQuery(query, new String[] {String.valueOf(task_id)});
+            TaskModel task = new TaskModel();
+            if(cursor.moveToFirst()){
+                task.setId(cursor.getInt(0));
+                task.setTitle(cursor.getString(1));
+                task.setDescription(cursor.getString(2));
+                task.setPriority(cursor.getInt(3));
+                task.setIsStatusCompleted((cursor.getString(4)).equals("completed"));
+                task.setCreation_time(cursor.getLong(5));
+                task.setCompletion_time(cursor.getLong(6));
+                task.setReminder_time(cursor.getLong(7));
+                task.setIsNull(false);
+            }
+            else
+                task.setIsNull(true);
+
+            db.close();
+            cursor.close();
+            return task;
         }
 
 //    public ArrayList<TaskModel> fetchAllTasks(){
@@ -122,7 +146,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         while (todayTaskCursor.moveToNext()){
             TaskModel task = new TaskModel();
-            task.setId(todayTaskCursor.getLong(0));
+            task.setId(todayTaskCursor.getInt(0));
             task.setTitle(todayTaskCursor.getString(1));
             task.setDescription(todayTaskCursor.getString(2));
             task.setPriority(todayTaskCursor.getInt(3));
@@ -130,6 +154,7 @@ public class DBHelper extends SQLiteOpenHelper {
             task.setCreation_time(todayTaskCursor.getLong(5));
             task.setCompletion_time(todayTaskCursor.getLong(6));
             task.setReminder_time(todayTaskCursor.getLong(7));
+            task.setIsNull(false);
 
             tasksArr.add(task);
         }
@@ -142,7 +167,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         while(noReminderTaskCursor.moveToNext()){
             TaskModel task = new TaskModel();
-            task.setId(noReminderTaskCursor.getLong(0));
+            task.setId(noReminderTaskCursor.getInt(0));
             task.setTitle(noReminderTaskCursor.getString(1));
             task.setDescription(noReminderTaskCursor.getString(2));
             task.setPriority(noReminderTaskCursor.getInt(3));
@@ -150,6 +175,7 @@ public class DBHelper extends SQLiteOpenHelper {
             task.setCreation_time(noReminderTaskCursor.getLong(5));
             task.setCompletion_time(noReminderTaskCursor.getLong(6));
             task.setReminder_time(noReminderTaskCursor.getLong(7));
+            task.setIsNull(false);
 
             tasksArr.add(task);
         }

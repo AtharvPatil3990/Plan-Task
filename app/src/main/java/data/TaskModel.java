@@ -1,7 +1,7 @@
 package data;
 
 public class TaskModel {
-    private long id;
+    private int id;
     private String title;
     private String description;
     private int priority;
@@ -9,6 +9,7 @@ public class TaskModel {
     private long completion_time;
     private long reminder_time;
     private boolean isStatusCompleted;
+    private boolean isNull;
 
     public TaskModel() {}
 
@@ -33,7 +34,7 @@ public class TaskModel {
 //    }
 
     // --- Getters ---
-    public long getId() { return id; }
+    public int getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public int getPriority() { return priority; }
@@ -42,9 +43,13 @@ public class TaskModel {
     public long getReminder_time() { return reminder_time; }
     public boolean isStatusCompleted() { return isStatusCompleted; }
 
+    public boolean isNull(){
+        return isNull;
+    }
+
 
     // --- Setters ---
-    public void setId(long id) { this.id = id; }
+    public void setId(int id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
     public void setPriority(int priority) { this.priority = priority; }
@@ -53,6 +58,9 @@ public class TaskModel {
     public void setReminder_time(long reminder_time) { this.reminder_time = reminder_time; }
     public void setIsStatusCompleted(boolean isStatusCompleted) {
         this.isStatusCompleted = isStatusCompleted;
+    }
+    public void setIsNull(boolean isNull){
+        this.isNull = isNull;
     }
 
 }

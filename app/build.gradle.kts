@@ -49,8 +49,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation("com.google.android.material:material:1.13.0")
+    implementation(libs.material)
     implementation(libs.navigation.fragment.v282)
     implementation(libs.navigation.ui.v282)
     implementation(libs.fragment)
+
+    implementation(libs.core.splashscreen)
 }

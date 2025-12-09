@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/screenBackground"
@@ -218,6 +219,17 @@
             />
     </LinearLayout>
 
+    <View
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/fabAnimView"
+        android:background="@color/fabBackground"
+
+        app:layout_constraintBottom_toBottomOf="@+id/btnAddTask"
+        app:layout_constraintEnd_toEndOf="@id/btnAddTask"
+        app:layout_constraintStart_toStartOf="@+id/btnAddTask"
+        app:layout_constraintTop_toTopOf="@+id/btnAddTask"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnAddTask"
         android:layout_width="wrap_content"
@@ -225,9 +237,8 @@
         android:layout_margin="10dp"
         android:contentDescription="Add Task"
         android:src="@drawable/plus_icon"
-        app:backgroundTint="@color/fabBackground"
+        android:backgroundTint="@color/fabBackground"
         android:tint="@color/fabIconTint"
-        app:fabSize="normal"
         app:maxImageSize="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

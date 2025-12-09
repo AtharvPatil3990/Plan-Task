@@ -3,9 +3,12 @@ package ui.home;
 import static com.google.android.material.snackbar.BaseTransientBottomBar.ANIMATION_MODE_FADE;
 
 import android.animation.ValueAnimator;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,8 +16,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +41,7 @@ import java.util.Locale;
 
 import data.DBHelper;
 import data.TaskModel;
+import kotlinx.coroutines.scheduling.Task;
 
 public class HomeFragment extends Fragment {
 
@@ -49,6 +53,7 @@ public class HomeFragment extends Fragment {
     LinearProgressIndicator progressBar;
     TextView tvProgressCount, tvPendingTaskCount, tvCompletedTaskCount, tvNoTaskStatement;
     ProgressCount progressCount;
+    View fabAnimView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -84,7 +89,7 @@ public class HomeFragment extends Fragment {
                     task.setReminder_time(reminderTimeInMills);
                     task.setPriority(0); // 0 = normal task, 1 = high priority task
                     task.setIsStatusCompleted(false);
-                    long id = dbHelper.insertTask(task);
+                    int id = dbHelper.insertTask(task);
                     dbHelper.close();
                     task.setId(id);
 
@@ -97,6 +102,9 @@ public class HomeFragment extends Fragment {
                         progressCount.pendingTaskCount++;
                         updateTaskCount();
                     }
+                    if(task.getReminder_time() != 0)
+                        setAlarm(task);
+
                 }
                 else {
                     updateTaskCount();
@@ -115,10 +123,12 @@ public class HomeFragment extends Fragment {
         tvPendingTaskCount = view.findViewById(R.id.tvPendingTaskCount);
         tvCompletedTaskCount = view.findViewById(R.id.tvCompletedTaskCount);
         tvNoTaskStatement = view.findViewById(R.id.tvNoTaskStatement);
+        fabAnimView = view.findViewById(R.id.fabAnimView);
 
         btnAddTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.fab_explode_anim));
                 Navigation.findNavController(v).navigate(R.id.action_addNewTask);
             }
         });
@@ -132,6 +142,26 @@ public class HomeFragment extends Fragment {
 
         return view;
     }
+
+    private void setAlarm(TaskModel task){
+        AlarmManager alarmManager = (AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(requireContext(), TaskAlarmReceiver.class);
+        intent.putExtra("TASK_ID", task.getId());
+        intent.putExtra("TASK_TITLE", task.getTitle());
+        intent.putExtra("REM_TIME", task.getReminder_time());
+
+        PendingIntent pi = PendingIntent.getBroadcast(requireContext(), task.getId(), intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, task.getReminder_time(), pi);
+    }
+
+    private void cancelAlarm(TaskModel task){
+        AlarmManager alarmManager = (AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
+        PendingIntent pi = PendingIntent.getBroadcast(requireContext(), task.getId(), new Intent(requireContext(), TaskAlarmReceiver.class), PendingIntent.FLAG_IMMUTABLE);
+
+        alarmManager.cancel(pi);
+    }
+
     private void setDate(){
         Calendar calendar = Calendar.getInstance();
 
@@ -150,7 +180,6 @@ public class HomeFragment extends Fragment {
         }
         else
             tvDisplayName.setText("Welcome, " + userName);
-
     }
 
     private void askUserName(){
@@ -210,6 +239,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onDeleteTask(TaskModel taskModel, int position) {
                 deleteTask(taskModel, position);
+                cancelAlarm(taskModel);
             }
         });
 
@@ -243,9 +273,14 @@ public class HomeFragment extends Fragment {
             }
 
             @Override
-            public void onDeleteTask(TaskModel taskModel, int positon) {
-                deleteTask(taskModel, positon);
+            public void onDeleteTask(TaskModel taskModel, int position) {
+                deleteTask(taskModel, position);
                 Toast.makeText(requireContext(), "Task Deleted", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onTaskStatusChange(int position){
+                rvAdapter.notifyItemChanged(position);
             }
         });
 

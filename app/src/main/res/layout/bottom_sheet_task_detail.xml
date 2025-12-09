@@ -22,6 +22,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/btnBack"
+            android:clickable="true"
+            android:src="@drawable/close_icon"
+            app:tint="@color/primaryText"
+            android:background="@color/screenBackground"
+            android:padding="5dp"
+            android:layout_marginEnd="5dp"
+            android:contentDescription="Back Button"
+            app:layout_constraintTop_toBottomOf="@id/drag_handle"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
         <!-- Top Heading -->
         <TextView
             android:id="@+id/tvHeader"
@@ -221,7 +236,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:padding="16dp"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
@@ -230,52 +245,76 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/taskStatusTitle"
                     android:text="Task Status"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/primaryText"/>
+                    android:textColor="@color/primaryText"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    />
 
-                <TextView
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:id="@+id/tvTaskStatus"-->
+<!--                    android:text="Completed"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:layout_marginTop="3dp"-->
+<!--                    android:textColor="@color/secondaryText"-->
+<!--                    app:layout_constraintTop_toBottomOf="@+id/taskStatusTitle"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    />-->
+<!--                -->
+                <com.google.android.material.chip.Chip
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/tvTaskStatus"
-                    android:text="Completed"
-                    android:textSize="16sp"
-                    android:layout_marginTop="3dp"
-                    android:textColor="@color/secondaryText"/>
+                    android:id="@+id/taskStatusChip"
+                    android:text="Pending"
+                    app:chipBackgroundColor="@color/todo"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:checkable="true"
+                    android:clickable="true"
+                    app:chipIconTint="@color/black"
+                    app:checkedIcon="@drawable/task_completed_icon"
+                    app:chipIcon="@drawable/task_todo_icon"
+                    app:layout_constraintTop_toBottomOf="@+id/taskStatusTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    />
 
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEdit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/btnEdit"
+            android:backgroundTint="@color/fabBackground"
             android:text="Edit"
             android:textColor="@color/primaryText"
             android:textSize="20sp"
             app:cornerRadius="20dp"
-            android:backgroundTint="@color/fabBackground"
-            app:layout_constraintTop_toBottomOf="@id/cardStatus"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/btnDelete"
-            />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardStatus" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDelete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/btnDelete"
+            android:backgroundTint="@color/fabBackground"
             android:text="Delete"
             android:textColor="@color/primaryText"
             android:textSize="20sp"
             app:cornerRadius="20dp"
-            android:backgroundTint="@color/fabBackground"
-            app:layout_constraintTop_toBottomOf="@id/cardStatus"
-            app:layout_constraintStart_toEndOf="@id/btnEdit"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            />
+            app:layout_constraintStart_toEndOf="@id/btnEdit"
+            app:layout_constraintTop_toBottomOf="@id/cardStatus" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

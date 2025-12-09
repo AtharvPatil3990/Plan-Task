@@ -67,13 +67,13 @@
                 />
 
             <TextView
-                android:id="@+id/tvDateErrorMessage"
+                android:id="@+id/tvRGErrorMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_marginStart="15dp"
                 android:text="*Please select a date option"
                 android:textColor="@color/red"
-                android:textSize="16dp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
@@ -107,9 +107,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/rbToday"
+                    android:checked="true"
                     android:textColor="@color/primaryText"
                     android:text="Today"
-                    android:textSize="18dp"/>
+                    android:textSize="18sp"/>
 
                 <RadioButton
                     android:layout_width="wrap_content"
@@ -117,7 +118,7 @@
                     android:id="@+id/rbCustom"
                     android:textColor="@color/primaryText"
                     android:text="Select Custom Date"
-                    android:textSize="18dp"
+                    android:textSize="18sp"
                     />
 
                 <RadioButton
@@ -126,7 +127,7 @@
                     android:id="@+id/rbNoReminder"
                     android:textColor="@color/primaryText"
                     android:text="Don't set a reminder"
-                    android:textSize="18dp" />
+                    android:textSize="18sp" />
             </RadioGroup>
 
             <com.google.android.material.textfield.TextInputEditText
@@ -146,7 +147,24 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginStart="15dp"
                 android:layout_marginTop="20dp"
-                android:layout_marginEnd="15dp" />
+                android:layout_marginEnd="15dp"
+                android:visibility="gone"
+                />
+
+            <TextView
+                android:id="@+id/tvDateErrorMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginStart="15dp"
+                android:text="*Please enter reminder date"
+                android:textColor="@color/red"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/rgSelectDate"
+                android:visibility="gone"
+                />
 
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
@@ -165,17 +183,20 @@
                 android:clickable="true"
                 android:layout_marginTop="20dp"
                 android:layout_marginStart="15dp"
-                android:layout_marginEnd="15dp"/>
+                android:layout_marginEnd="15dp"
+
+                />
 
             <TextView
                 android:id="@+id/tvReminderTimeErrorMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_marginStart="15dp"
-                android:text="*Please enter reminder time for today"
+                android:text="*Please enter reminder time"
                 android:textColor="@color/red"
                 android:textSize="16dp"
                 android:textStyle="bold"
+                android:layout_marginBottom="20dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etReminderTime"
                 android:visibility="gone"
@@ -195,6 +216,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_marginEnd="10dp"
+                android:layout_marginTop="20dp"
                 />
 
             <com.google.android.material.button.MaterialButton
@@ -211,6 +233,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
                 />
 
             <androidx.constraintlayout.widget.Guideline

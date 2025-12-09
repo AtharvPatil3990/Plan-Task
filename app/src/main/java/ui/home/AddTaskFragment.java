@@ -29,11 +29,11 @@ import java.util.Locale;
 public class AddTaskFragment extends Fragment {
 
     TextInputEditText etTitle, etDescription, etReminderDate, etReminderTime;
-    TextView tvRGErrorMessage, tvReminderTimeErrorMessage;
+    TextView tvRGErrorMessage, tvReminderTimeErrorMessage, tvDateErrorMessage;
     Button btnCancel, btnDone;
     RadioGroup rgDate;
-    String selectedReminderChoice = "null";
-    private boolean isReminderDateOptionSelected = false;
+    String selectedReminderChoice = "today";
+    private boolean isReminderDateOptionSelected = true;
     private int reminderHour = -1, reminderMinute = -1, reminderDay = -1, reminderMonth = -1, reminderYear = -1;
     private String title, description;
     private long reminderTimeInMills;
@@ -61,9 +61,11 @@ public class AddTaskFragment extends Fragment {
         btnCancel = view.findViewById(R.id.btnCancel);
         btnDone = view.findViewById(R.id.btnDone);
         rgDate = view.findViewById(R.id.rgSelectDate);
-        tvRGErrorMessage = view.findViewById(R.id.tvDateErrorMessage);
+        tvRGErrorMessage = view.findViewById(R.id.tvRGErrorMessage);
         tvReminderTimeErrorMessage = view.findViewById(R.id.tvReminderTimeErrorMessage);
+        tvDateErrorMessage = view.findViewById(R.id.tvDateErrorMessage);
 
+        rgDate.isSelected();
 //        RadioButton check listener
         rgDate.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -71,7 +73,7 @@ public class AddTaskFragment extends Fragment {
                 if(checkedId != -1){
                     RadioButton rbSelected = view.findViewById(checkedId);
                     String selectedChoiceText = rbSelected.getText().toString();
-
+                    if(selectedChoiceText.isEmpty()) selectedChoiceText = "Today";
                     switch (selectedChoiceText) {
                         case "Today":
                             selectedReminderChoice = "today";
@@ -89,6 +91,9 @@ public class AddTaskFragment extends Fragment {
                             etReminderDate.setVisibility(View.GONE);
                             break;
                     }
+                    tvReminderTimeErrorMessage.setVisibility(View.GONE);
+                    tvDateErrorMessage.setVisibility(View.GONE);
+                    tvRGErrorMessage.setVisibility(View.GONE);
                     isReminderDateOptionSelected = true;
                 }
             }
@@ -138,6 +143,8 @@ public class AddTaskFragment extends Fragment {
                         reminderHour = reminderHour % 12;
                         reminderHour = (reminderHour == 0) ? 12 : reminderHour;
                         etReminderTime.setText(String.format(Locale.getDefault(), "%02d:%02d %s", reminderHour, reminderMinute, amPm));
+
+                        reminderHour = timePicker.getHour();
                     }
                 });
                 timePicker.show(getParentFragmentManager(), "TIME_PICKER");
@@ -176,6 +183,7 @@ public class AddTaskFragment extends Fragment {
 
                 if (isReminderDateOptionSelected) {
                     Calendar cal = Calendar.getInstance();
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd, MMM, yyyy, hh, mm, a", Locale.getDefault());
 //                    Check the date selected in radio button
                     switch (selectedReminderChoice) {
                         case "today":
@@ -194,11 +202,13 @@ public class AddTaskFragment extends Fragment {
                         case "custom_date":
                             if (reminderDay == -1 || reminderMonth == -1 || reminderYear == -1) {
                                 etReminderDate.setError("Please select a date");
+                                tvDateErrorMessage.setVisibility(View.VISIBLE);
                                 etReminderDate.requestFocus();
                                 return;
                             }
                             else if(reminderHour == -1 || reminderMinute == -1){
                                 tvReminderTimeErrorMessage.setVisibility(View.VISIBLE);
+                                etReminderTime.setError("Please select time");
                                 tvReminderTimeErrorMessage.requestFocus();
                                 return;
                             }
@@ -210,7 +220,8 @@ public class AddTaskFragment extends Fragment {
                             reminderTimeInMills = 0;
                             break;
                     }
-                } else {
+                }
+                else {
                     tvRGErrorMessage.setVisibility(View.VISIBLE);
                     tvRGErrorMessage.requestFocus();
                     return;

@@ -3,11 +3,15 @@ package ui.home;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,22 +19,32 @@ import androidx.annotation.Nullable;
 import com.android.plantask.R;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
+import data.DBHelper;
 import data.TaskModel;
 
 public class TaskBottomSheet extends BottomSheetDialogFragment {
     private final TaskModel task;
     int position;
+    int sheetMode;
     BottomSheetTaskActionListener bottomSheetTaskActionListener;
-    TaskBottomSheet(TaskModel task, int position, BottomSheetTaskActionListener bottomSheetTaskActionListener){
+    public final static int VIEW_MODE = 1;
+    public final static int EDIT_MODE = 0;
+    Chip chipStatus;
+
+    public TaskBottomSheet(TaskModel task, int position, int sheetMode , BottomSheetTaskActionListener bottomSheetTaskActionListener){
         this.task = task;
         this.position = position;
+        this.sheetMode = sheetMode;
         this.bottomSheetTaskActionListener = bottomSheetTaskActionListener;
+    }
+    public TaskBottomSheet(TaskModel task, int sheetMode){
+        this.task = task;
+        this.sheetMode = sheetMode;
     }
 
     @NonNull
@@ -41,11 +55,25 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
 
         Button btnEdit = view.findViewById(R.id.btnEdit);
         Button btnDelete = view.findViewById(R.id.btnDelete);
+        ImageButton btnBack = view.findViewById(R.id.btnBack);
+
         TextView tvTitle = view.findViewById(R.id.tvTaskTitle);
         TextView tvDes = view.findViewById(R.id.tvTaskDescription);
         TextView tvCreationTime = view.findViewById(R.id.tvTaskCreationTime);
         TextView tvDueTime = view.findViewById(R.id.tvTaskDueTime);
-        TextView tvStatus = view.findViewById(R.id.tvTaskStatus);
+        chipStatus = view.findViewById(R.id.taskStatusChip);
+
+        if(sheetMode == EDIT_MODE){
+            btnEdit.setVisibility(View.VISIBLE);
+            btnDelete.setVisibility(View.VISIBLE);
+        }
+        else {
+            // In VIEW_MODE
+            btnEdit.setVisibility(View.GONE);
+            btnDelete.setVisibility(View.GONE);
+        }
+
+        setChipStatus();
 
         tvTitle.setText(task.getTitle());
 
@@ -85,8 +113,6 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
             tvCompletionTime.setVisibility(View.VISIBLE);
             viewAboveCreationTime.setVisibility(View.VISIBLE);
 
-            tvStatus.setText("Completed");
-
             if(DateUtils.isToday(task.getCompletion_time())) {
                 String completionTimeString = "Today, " + sdfToday.format(task.getCompletion_time());
                 tvCompletionTime.setText(completionTimeString);
@@ -94,29 +120,69 @@ public class TaskBottomSheet extends BottomSheetDialogFragment {
             else
                 tvCompletionTime.setText(sdfLong.format(task.getCompletion_time()));
         }
-        else
-            tvStatus.setText("Pending");
 
-        btnEdit.setOnClickListener(v -> {
-            v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
+        if(sheetMode == EDIT_MODE) {
+            btnEdit.setOnClickListener(v -> {
+                v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
 
-            bottomSheetTaskActionListener.onEditTask(task, position);
-            dismiss();
+                bottomSheetTaskActionListener.onEditTask(task, position);
+                dismiss();
+            });
+
+            btnDelete.setOnClickListener(v -> {
+                v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
+
+                bottomSheetTaskActionListener.onDeleteTask(task, position);
+                dismiss();
+            });
+        }
+        chipStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
+                Log.d("isChecked","isChecked value: " + isChecked);
+                DBHelper db = new DBHelper(requireContext());
+                if(isChecked){
+                    db.updateTaskState(task.getId(), true);
+                    Toast.makeText(requireContext(), "Task marked as completed", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    db.updateTaskState(task.getId(), false);
+                    Toast.makeText(requireContext(), "Task marked as pending", Toast.LENGTH_SHORT).show();
+                }
+                task.setIsStatusCompleted(isChecked);
+                Log.d("isChecked", "task status: " + task.isStatusCompleted());
+                setChipStatus();
+                db.close();
+                bottomSheetTaskActionListener.onTaskStatusChange(position);
+            }
         });
 
-        btnDelete.setOnClickListener(v -> {
-            v.startAnimation(AnimationUtils.loadAnimation(requireContext(), R.anim.button_click_scale_animation));
-
-            bottomSheetTaskActionListener.onDeleteTask(task, position);
+        btnBack.setOnClickListener(v -> {
             dismiss();
         });
 
         dialog.setContentView(view);
         return dialog;
     }
+
+    private void setChipStatus(){
+        if(task.isStatusCompleted()) {
+            chipStatus.setChecked(true);
+            chipStatus.setText("Completed");
+            chipStatus.setChipIconResource(R.drawable.task_completed_icon);
+            chipStatus.setChipBackgroundColorResource(R.color.completed);
+        }
+        else{
+            chipStatus.setChecked(false);
+            chipStatus.setText("Pending");
+            chipStatus.setChipIconResource(R.drawable.task_todo_icon);
+            chipStatus.setChipBackgroundColorResource(R.color.todo);
+        }
+    }
 }
 
 interface BottomSheetTaskActionListener {
     void onEditTask(TaskModel taskModel, int position);
     void onDeleteTask(TaskModel taskModel, int position);
+    void onTaskStatusChange(int position);
 }

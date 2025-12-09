@@ -76,7 +76,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             v.startAnimation(AnimationUtils.loadAnimation(v.getContext(), R.anim.button_click_scale_animation));
             int positionInside = holder.getLayoutPosition(); // position = index
             TaskModel taskModel = taskArrayList.get(positionInside);
-            TaskBottomSheet taskBottomSheet = new TaskBottomSheet(taskModel, positionInside, bottomSheetTaskActionListener);
+            TaskBottomSheet taskBottomSheet = new TaskBottomSheet(taskModel, positionInside, TaskBottomSheet.EDIT_MODE, bottomSheetTaskActionListener);
             taskBottomSheet.show(fragmentManager, "Task Bottom Sheet");
         });
     }
